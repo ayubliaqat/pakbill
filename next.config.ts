@@ -7,10 +7,17 @@ const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
+  // Static assets in /public are served automatically by Next.js.
+  // You only need 'images' config if you are using a remote provider
+  // or need specific path patterns for optimized images.
   images: {
     localPatterns: [
       {
         pathname: '/api/media/file/**',
+      },
+      // Add this line to allow your logo folder
+      {
+        pathname: '/logos/**',
       },
     ],
   },
