@@ -152,41 +152,50 @@ export interface Post {
     };
     [k: string]: unknown;
   };
+  status: 'draft' | 'published';
   /**
-   * Short summary shown on blog cards (recommended 150-200 characters). Written after drafting content.
+   * Schedule publishing date/time. Auto-fills upon publishing if left blank.
+   */
+  publishedAt?: string | null;
+  featured?: boolean | null;
+  /**
+   * Short summary shown on blog cards (recommended 150-200 characters).
    */
   excerpt?: string | null;
   /**
    * Primary header or card image for the post.
    */
   featuredImage?: (number | null) | Media;
+  category?: (number | null) | Category;
+  tags?: (number | Tag)[] | null;
+  author: number | User;
   /**
    * Configure how this post appears in Google search engine results pages.
    */
   meta?: {
     /**
-     * SEO Meta Title. Recommended length: max 60 characters for optimal display.
+     * SEO Meta Title. Recommended: max 60 characters.
      */
     title?: string | null;
     /**
-     * SEO Meta Description. Recommended length: max 160 characters.
+     * SEO Meta Description. Recommended: max 160 characters.
      */
     description?: string | null;
     /**
-     * Default sharing image for search engines and general social graphs.
+     * Default sharing image for search engines and social graphs.
      */
     image?: (number | null) | Media;
   };
   /**
-   * Control crawler directives, structured data schemas, and Open Graph overrides.
+   * Control crawler directives, JSON-LD schemas, and Open Graph overrides.
    */
   advancedSeo?: {
     /**
-     * Custom canonical URL override if syndicated from another source.
+     * Custom canonical URL override if syndicated.
      */
     canonicalUrl?: string | null;
     /**
-     * Instructs search engine crawlers not to index this page.
+     * Instructs search crawler bots not to index this page.
      */
     noIndex?: boolean | null;
     /**
@@ -194,11 +203,11 @@ export interface Post {
      */
     schemaType?: ('Article' | 'BlogPosting' | 'NewsArticle' | 'HowTo' | 'FAQPage') | null;
     /**
-     * Open Graph title for Facebook/LinkedIn. Recommended ≤ 70 characters.
+     * Open Graph title for social shares. Recommended ≤ 70 chars.
      */
     ogTitle?: string | null;
     /**
-     * Open Graph description override. Recommended ≤ 200 characters.
+     * Open Graph description override. Recommended ≤ 200 chars.
      */
     ogDescription?: string | null;
     /**
@@ -207,19 +216,19 @@ export interface Post {
     twitterCard?: ('summary' | 'summary_large_image') | null;
   };
   /**
-   * Auto-calculated from body content length (~200 words/min).
+   * Auto-calculated from body length (~200 words/min).
    */
   readingTime?: number | null;
   /**
-   * Automatically generate and render an in-page TOC block from headings.
+   * Auto-generate and render an in-page TOC block from headings.
    */
   showTableOfContents?: boolean | null;
   /**
-   * Manually curated related posts displayed at the article footer.
+   * Manually curated related posts displayed at article footer.
    */
   relatedPosts?: (number | Post)[] | null;
   /**
-   * Populates interactive accordions and FAQPage structured JSON-LD schema.
+   * Populates interactive accordions and FAQPage structured JSON-LD.
    */
   faqs?:
     | {
@@ -229,22 +238,13 @@ export interface Post {
       }[]
     | null;
   /**
-   * Optional 301 redirect target path if this post is retired or merged.
+   * Optional 301 redirect target path if post is retired.
    */
   redirectUrl?: string | null;
   /**
-   * Internal editorial notes — strictly restricted to backend team members.
+   * Internal editorial notes — strictly restricted to backend team.
    */
   internalNotes?: string | null;
-  status: 'draft' | 'published';
-  /**
-   * Schedule publishing date/time. Auto-fills upon publishing if left blank.
-   */
-  publishedAt?: string | null;
-  featured?: boolean | null;
-  category?: (number | null) | Category;
-  tags?: (number | Tag)[] | null;
-  author: number | User;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -410,8 +410,14 @@ export interface PostsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   content?: T;
+  status?: T;
+  publishedAt?: T;
+  featured?: T;
   excerpt?: T;
   featuredImage?: T;
+  category?: T;
+  tags?: T;
+  author?: T;
   meta?:
     | T
     | {
@@ -441,12 +447,6 @@ export interface PostsSelect<T extends boolean = true> {
       };
   redirectUrl?: T;
   internalNotes?: T;
-  status?: T;
-  publishedAt?: T;
-  featured?: T;
-  category?: T;
-  tags?: T;
-  author?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
