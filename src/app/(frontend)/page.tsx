@@ -188,8 +188,8 @@ export default function HomePage() {
 
               <h1 className="mt-4 text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
                 <span className="block text-gray-300 drop-shadow-lg">Check Your</span>
-                <span className="block text-blue-300 drop-shadow-lg">Electricity Bill</span>
-                <span className="block text-blue-300 drop-shadow-lg">Online in Seconds</span>
+                <span className="block text-blue-300 drop-shadow-lg">Electricity Bill online</span>
+                <span className="block text-gray-300 drop-shadow-lg"> in Seconds</span>
               </h1>
 
               <div className="mt-6 rounded-2xl border border-white/15 bg-black/20 p-4 backdrop-blur-md sm:mt-8 sm:p-5">

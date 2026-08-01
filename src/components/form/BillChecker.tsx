@@ -110,7 +110,7 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
   const isLoading = progress !== null
 
   return (
-    <div className="w-full max-w-[420px] sm:max-w-[460px] lg:max-w-[500px] rounded-2xl border border-brand-border bg-white p-5 sm:p-7 lg:p-8 shadow-[0_8px_40px_-5px_rgba(30,80,165,0.15)] bg-[radial-gradient(circle_at_50%_-20%,_rgba(235,244,255,0.8)_0%,_#ffffff_70%)]">
+    <div className="w-full max-w-[420px] sm:max-w-[460px] lg:max-w-[500px] rounded-2xl border border-brand-border bg-white p-2 sm:p-7 lg:p-8 shadow-[0_8px_40px_-5px_rgba(30,80,165,0.15)] bg-[radial-gradient(circle_at_50%_-20%,_rgba(235,244,255,0.8)_0%,_#ffffff_70%)]">
       <div className="mb-5 sm:mb-6 text-center">
         <div className="mx-auto mb-3 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-brand-accent/10">
           <svg

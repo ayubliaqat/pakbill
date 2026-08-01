@@ -23,7 +23,7 @@ export default function Header() {
   }, [pathname])
 
   return (
-    <header className="sticky top-0 z-50 w-full py-3 bg-card/95 backdrop-blur-sm border-b border-border">
+    <header className="sticky top-0 z-50 w-full py-2 bg-card/95 backdrop-blur-sm border-b border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo - Optimized for LCP */}

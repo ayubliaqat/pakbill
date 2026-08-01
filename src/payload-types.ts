@@ -67,6 +67,9 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    posts: Post;
+    categories: Category;
+    tags: Tag;
     users: User;
     media: Media;
     'payload-kv': PayloadKv;
@@ -76,6 +79,9 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    posts: PostsSelect<false> | PostsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -119,6 +125,174 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  /**
+   * The main post title displayed on the frontend.
+   */
+  title: string;
+  /**
+   * URL permalink identifier. Auto-generated from title if left blank.
+   */
+  slug: string;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Short summary shown on blog cards (recommended 150-200 characters). Written after drafting content.
+   */
+  excerpt?: string | null;
+  /**
+   * Primary header or card image for the post.
+   */
+  featuredImage?: (number | null) | Media;
+  /**
+   * Configure how this post appears in Google search engine results pages.
+   */
+  meta?: {
+    /**
+     * SEO Meta Title. Recommended length: max 60 characters for optimal display.
+     */
+    title?: string | null;
+    /**
+     * SEO Meta Description. Recommended length: max 160 characters.
+     */
+    description?: string | null;
+    /**
+     * Default sharing image for search engines and general social graphs.
+     */
+    image?: (number | null) | Media;
+  };
+  /**
+   * Control crawler directives, structured data schemas, and Open Graph overrides.
+   */
+  advancedSeo?: {
+    /**
+     * Custom canonical URL override if syndicated from another source.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Instructs search engine crawlers not to index this page.
+     */
+    noIndex?: boolean | null;
+    /**
+     * Schema.org structured data JSON-LD format type.
+     */
+    schemaType?: ('Article' | 'BlogPosting' | 'NewsArticle' | 'HowTo' | 'FAQPage') | null;
+    /**
+     * Open Graph title for Facebook/LinkedIn. Recommended ≤ 70 characters.
+     */
+    ogTitle?: string | null;
+    /**
+     * Open Graph description override. Recommended ≤ 200 characters.
+     */
+    ogDescription?: string | null;
+    /**
+     * Twitter/X card display type.
+     */
+    twitterCard?: ('summary' | 'summary_large_image') | null;
+  };
+  /**
+   * Auto-calculated from body content length (~200 words/min).
+   */
+  readingTime?: number | null;
+  /**
+   * Automatically generate and render an in-page TOC block from headings.
+   */
+  showTableOfContents?: boolean | null;
+  /**
+   * Manually curated related posts displayed at the article footer.
+   */
+  relatedPosts?: (number | Post)[] | null;
+  /**
+   * Populates interactive accordions and FAQPage structured JSON-LD schema.
+   */
+  faqs?:
+    | {
+        question: string;
+        answer: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optional 301 redirect target path if this post is retired or merged.
+   */
+  redirectUrl?: string | null;
+  /**
+   * Internal editorial notes — strictly restricted to backend team members.
+   */
+  internalNotes?: string | null;
+  status: 'draft' | 'published';
+  /**
+   * Schedule publishing date/time. Auto-fills upon publishing if left blank.
+   */
+  publishedAt?: string | null;
+  featured?: boolean | null;
+  category?: (number | null) | Category;
+  tags?: (number | Tag)[] | null;
+  author: number | User;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  alt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -144,25 +318,6 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  alt: string;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -185,6 +340,18 @@ export interface PayloadKv {
 export interface PayloadLockedDocument {
   id: number;
   document?:
+    | ({
+        relationTo: 'posts';
+        value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
+      } | null)
     | ({
         relationTo: 'users';
         value: number | User;
@@ -234,6 +401,76 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  content?: T;
+  excerpt?: T;
+  featuredImage?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  advancedSeo?:
+    | T
+    | {
+        canonicalUrl?: T;
+        noIndex?: T;
+        schemaType?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        twitterCard?: T;
+      };
+  readingTime?: T;
+  showTableOfContents?: T;
+  relatedPosts?: T;
+  faqs?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
+  redirectUrl?: T;
+  internalNotes?: T;
+  status?: T;
+  publishedAt?: T;
+  featured?: T;
+  category?: T;
+  tags?: T;
+  author?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
