@@ -1,16 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { discos, getDiscoByCode } from '@/data/discos'
 import { buildBillUrl, isValidReference } from '@/lib/redirect'
 
 type InputMode = 'reference' | 'customerId'
-const PROGRESS_DURATION_MS = 10000
-const LOADING_MESSAGES = [
-  'Connecting to PITC…',
-  'Fetching your latest bill…',
-  'Almost there, hang tight…',
-]
 
 interface BillCheckerProps {
   lockedDiscoCode?: string
@@ -21,17 +15,9 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
   const [mode, setMode] = useState<InputMode>('reference')
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [progress, setProgress] = useState<number | null>(null)
-  const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0])
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isLocked = !!lockedDiscoCode
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [])
 
   const selectedDisco = getDiscoByCode(discoCode)
   const isKE = selectedDisco?.code === 'ke'
@@ -57,49 +43,83 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
       return
     }
 
-    const intervalMs = 50
-    const steps = PROGRESS_DURATION_MS / intervalMs
-    let currentStep = 0
+    setIsSubmitting(true)
 
-    setProgress(0)
-    setLoadingMessage(LOADING_MESSAGES[0])
+    // Open the tab synchronously, right here inside the click handler.
+    // This is what satisfies browser popup blockers — they only allow
+    // window.open() when it's a direct, synchronous result of a user
+    // gesture.
+    const billTab = window.open('', 'pakbill-result')
 
-    timerRef.current = setInterval(() => {
-      currentStep++
+    if (!billTab) {
+      setError('Please allow popups for this site, then tap "Show my bill" again.')
+      setIsSubmitting(false)
+      return
+    }
 
-      const pct = Math.min(100, Math.round((currentStep / steps) * 100))
-      setProgress(pct)
+    // Give the tab real content immediately instead of leaving it blank —
+    // this loading screen IS the loading state now (no separate fake
+    // progress bar on the main page). It gets replaced the instant the
+    // form below submits into this same tab.
+    billTab.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <title>Fetching your bill… | PakBill</title>
+          <style>
+            body {
+              margin: 0;
+              height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-family: -apple-system, system-ui, sans-serif;
+              background: #F7F8FA;
+              color: #334155;
+            }
+            .box { text-align: center; }
+            .spinner {
+              width: 40px;
+              height: 40px;
+              margin: 0 auto 16px;
+              border: 4px solid #CBD5E1;
+              border-top-color: #1D4ED8;
+              border-radius: 50%;
+              animation: spin 0.8s linear infinite;
+            }
+            @keyframes spin { to { transform: rotate(360deg); } }
+          </style>
+        </head>
+        <body>
+          <div class="box">
+            <div class="spinner"></div>
+            <p>Connecting to PITC and fetching your bill…</p>
+          </div>
+        </body>
+      </html>
+    `)
+    billTab.document.close()
 
-      const messageIndex = Math.min(
-        LOADING_MESSAGES.length - 1,
-        Math.floor((pct / 100) * LOADING_MESSAGES.length),
-      )
-      setLoadingMessage(LOADING_MESSAGES[messageIndex])
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = url
+    form.target = 'pakbill-result'
+    form.setAttribute('rel', 'noopener noreferrer')
 
-      if (pct >= 100) {
-        if (timerRef.current) {
-          clearInterval(timerRef.current)
-          timerRef.current = null
-        }
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = 'refno'
+    input.value = value.trim()
+    form.appendChild(input)
 
-        const form = document.createElement('form')
-        form.method = 'POST'
-        form.action = url
-        form.target = '_blank'
+    document.body.appendChild(form)
+    form.submit()
+    document.body.removeChild(form)
 
-        const input = document.createElement('input')
-        input.type = 'hidden'
-        input.name = 'refno'
-        input.value = value.trim()
-        form.appendChild(input)
-
-        document.body.appendChild(form)
-        form.submit()
-        document.body.removeChild(form)
-
-        setProgress(null)
-      }
-    }, intervalMs)
+    // Brief debounce so the button visibly registers the click and can't
+    // be double-submitted, without simulating a fake multi-second wait.
+    setTimeout(() => setIsSubmitting(false), 600)
   }
 
   const placeholder = isKE
@@ -107,10 +127,9 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
     : mode === 'reference'
       ? 'e.g. 11112160848600'
       : 'e.g. 1234567'
-  const isLoading = progress !== null
 
   return (
-    <div className="w-full max-w-[420px] sm:max-w-[460px] lg:max-w-[500px] rounded-2xl border border-brand-border bg-white p-2 sm:p-7 lg:p-8 shadow-[0_8px_40px_-5px_rgba(30,80,165,0.15)] bg-[radial-gradient(circle_at_50%_-20%,_rgba(235,244,255,0.8)_0%,_#ffffff_70%)]">
+    <div className="w-full max-w-[420px] sm:max-w-[460px] lg:max-w-[500px] rounded-2xl border border-brand-border bg-white p-5 sm:p-7 lg:p-8 shadow-[0_8px_40px_-5px_rgba(30,80,165,0.15)] bg-[radial-gradient(circle_at_50%_-20%,_rgba(235,244,255,0.8)_0%,_#ffffff_70%)]">
       <div className="mb-5 sm:mb-6 text-center">
         <div className="mx-auto mb-3 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-brand-accent/10">
           <svg
@@ -118,7 +137,7 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
             height="20"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#1e50a5"
+            stroke="var(--color-accent-blue)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -142,7 +161,7 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
           <select
             value={discoCode}
             onChange={(e) => setDiscoCode(e.target.value)}
-            disabled={isLoading}
+            disabled={isSubmitting}
             className="w-full rounded-lg border border-brand-border bg-brand-surface px-3 py-2.5 text-sm text-brand-ink outline-none focus:border-brand-accent disabled:opacity-60"
           >
             {discos.map((d) => (
@@ -166,7 +185,7 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
           <button
             type="button"
             onClick={() => setMode('reference')}
-            disabled={isLoading}
+            disabled={isSubmitting}
             className={`flex-1 rounded-lg border px-2.5 sm:px-3 py-2 text-xs sm:text-sm transition-colors ${
               mode === 'reference'
                 ? 'border-brand-accent bg-brand-accent/5 text-brand-accent'
@@ -178,7 +197,7 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
           <button
             type="button"
             onClick={() => setMode('customerId')}
-            disabled={isLoading}
+            disabled={isSubmitting}
             className={`flex-1 rounded-lg border px-2.5 sm:px-3 py-2 text-xs sm:text-sm transition-colors ${
               mode === 'customerId'
                 ? 'border-brand-accent bg-brand-accent/5 text-brand-accent'
@@ -201,7 +220,7 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder={placeholder}
-            disabled={isLoading}
+            disabled={isSubmitting}
             className="w-full rounded-lg border border-brand-border px-3 py-2.5 font-mono text-sm tracking-wide text-brand-ink outline-none focus:border-brand-accent disabled:opacity-60"
           />
           {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
@@ -215,49 +234,11 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
             ? () => window.open(buildBillUrl('ke', '')!, '_blank', 'noopener,noreferrer')
             : handleShowBill
         }
-        disabled={isLoading}
+        disabled={isSubmitting}
         className="w-full rounded-lg bg-accent-blue py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-blue-dark disabled:opacity-70"
       >
-        {isLoading ? 'Fetching your bill...' : isKE ? 'Go to K-Electric portal' : 'Show my bill'}
+        {isSubmitting ? 'Opening your bill…' : isKE ? 'Go to K-Electric portal' : 'Show my bill'}
       </button>
-
-      {isLoading && !isKE && (
-        <div className="mt-3">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-brand-border">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-brand-accent via-accent-blue to-cyan-400 bg-[length:200%_100%] animate-[shimmer_1.5s_linear_infinite] transition-[width] duration-100 ease-linear"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <p
-            key={loadingMessage}
-            className="mt-2 text-center text-xs sm:text-sm font-medium text-accent-blue-dark animate-[fadeIn_0.3s_ease-in]"
-          >
-            {loadingMessage} <span className="text-brand-muted font-normal">({progress}%)</span>
-          </p>
-        </div>
-      )}
-
-      <style jsx>{`
-        @keyframes shimmer {
-          0% {
-            background-position: 200% 0;
-          }
-          100% {
-            background-position: -200% 0;
-          }
-        }
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(2px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   )
 }
