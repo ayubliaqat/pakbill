@@ -1,7 +1,6 @@
 'use client'
 
-import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js'
-
+import { ArcElement, Chart as ChartJS, Legend, Tooltip, TooltipItem } from 'chart.js'
 import { Doughnut } from 'react-chartjs-2'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
@@ -14,6 +13,8 @@ interface CalculatorChartProps {
 }
 
 export default function CalculatorChart({ energy, gst, fpa, tv }: CalculatorChartProps) {
+  const total = energy + gst + fpa + tv
+
   const data = {
     labels: ['Energy Charges', 'GST', 'Fuel Price Adjustment', 'PTV Fee'],
 
@@ -57,8 +58,9 @@ export default function CalculatorChart({ energy, gst, fpa, tv }: CalculatorChar
 
       tooltip: {
         callbacks: {
-          label(context: any) {
-            return `${context.label}: Rs. ${context.raw.toFixed(2)}`
+          label(context: TooltipItem<'doughnut'>) {
+            const value = typeof context.raw === 'number' ? context.raw : 0
+            return `${context.label}: Rs. ${value.toFixed(2)}`
           },
         },
       },
@@ -77,7 +79,16 @@ export default function CalculatorChart({ energy, gst, fpa, tv }: CalculatorChar
         </div>
 
         <div className="mx-auto mt-12 h-[420px] max-w-md">
-          <Doughnut data={data} options={options} />
+          {total <= 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-center p-6 rounded-2xl border border-dashed border-border bg-[#F8FBFF]">
+              <p className="text-sm font-medium text-heading">No bill data available yet.</p>
+              <p className="mt-1 text-xs text-muted">
+                Enter your electricity units to view the bill distribution.
+              </p>
+            </div>
+          ) : (
+            <Doughnut data={data} options={options} />
+          )}
         </div>
       </div>
     </section>

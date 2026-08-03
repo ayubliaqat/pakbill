@@ -6,31 +6,29 @@ interface CalculatorStatsProps {
 }
 
 export default function CalculatorStats({ units, energy, taxes, total }: CalculatorStatsProps) {
-  const average = units > 0 ? (total / units).toFixed(2) : '0.00'
-
   const cards = [
     {
       title: 'Units Consumed',
-      value: units,
+      value: units.toLocaleString(),
       suffix: 'Units',
     },
     {
       title: 'Energy Charges',
-      value: `Rs. ${energy.toFixed(2)}`,
+      value: `Rs. ${energy.toLocaleString()}`,
     },
     {
       title: 'Taxes & Adjustments',
-      value: `Rs. ${taxes.toFixed(2)}`,
+      value: `Rs. ${taxes.toLocaleString()}`,
     },
     {
-      title: 'Average Cost',
-      value: `Rs. ${average}`,
-      suffix: '/Unit',
+      title: 'Estimated Total',
+      value: `Rs. ${total.toLocaleString()}`,
+      suffix: 'Payable Amount',
     },
   ]
 
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-8">
+    <section className="px-4 pt-4 pb-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-10 text-center">
           <h2 className="text-3xl font-bold text-heading">Usage Summary</h2>

@@ -78,7 +78,7 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
               background: #F7F8FA;
               color: #334155;
             }
-            .box { text-align: center; }
+            .box { text-align: center; max-width: 320px; padding: 0 20px; }
             .spinner {
               width: 40px;
               height: 40px;
@@ -88,6 +88,11 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
               border-radius: 50%;
               animation: spin 0.8s linear infinite;
             }
+            .tip {
+              margin-top: 12px;
+              font-size: 13px;
+              color: #64748B;
+            }
             @keyframes spin { to { transform: rotate(360deg); } }
           </style>
         </head>
@@ -95,6 +100,7 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
           <div class="box">
             <div class="spinner"></div>
             <p>Connecting to PITC and fetching your bill…</p>
+            <p class="tip">Once your bill appears, use your browser's Print option and choose "Save as PDF" to download it.</p>
           </div>
         </body>
       </html>
@@ -117,9 +123,11 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
     form.submit()
     document.body.removeChild(form)
 
-    // Brief debounce so the button visibly registers the click and can't
-    // be double-submitted, without simulating a fake multi-second wait.
-    setTimeout(() => setIsSubmitting(false), 600)
+    // Cosmetic-only progress animation, purely visual. Does NOT gate or
+    // delay the tab open / form submit above — those already happened
+    // synchronously. This just gives the button/main page a "processing"
+    // feel for ~1.6s, then resets automatically.
+    setTimeout(() => setIsSubmitting(false), 1600)
   }
 
   const placeholder = isKE
@@ -239,6 +247,25 @@ export default function BillChecker({ lockedDiscoCode }: BillCheckerProps) {
       >
         {isSubmitting ? 'Opening your bill…' : isKE ? 'Go to K-Electric portal' : 'Show my bill'}
       </button>
+
+      {isSubmitting && !isKE && (
+        <div className="mt-3">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-brand-border">
+            <div className="h-full w-full origin-left rounded-full bg-accent-blue animate-[fillBar_1.6s_ease-out_forwards]" />
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes fillBar {
+          from {
+            transform: scaleX(0);
+          }
+          to {
+            transform: scaleX(1);
+          }
+        }
+      `}</style>
     </div>
   )
 }
