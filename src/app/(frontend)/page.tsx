@@ -173,7 +173,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-slate-900/55" />
         </div>
 
-        <div className="relative mx-auto flex max-w-[1500px] items-center px-4 py-10 sm:px-6 sm:py-14 lg:px-20 lg:py-16">
+        <div className="relative mx-auto flex max-w-[1500px] items-center px-4 pt-2 pb-10 sm:px-6 sm:pt-3 sm:pb-14 lg:px-20 lg:pt-4 lg:pb-16">
           <div className="grid w-full items-center gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:gap-16">
             {/* Form — first on mobile, right column on desktop */}
             <div className="order-1 flex justify-center lg:order-2 lg:justify-end">
